@@ -5,10 +5,13 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "sessions")
 data class SessionEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val appName: String,
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val packageName: String,
+    val appName: String,
     val startTime: Long,
     val endTime: Long,
-    val durationMinutes: Long
+    val duration: Long = endTime - startTime, // Add duration property
+    val openCount: Int = 1,
+    val durationMinutes: Long // Add durationMinutes property
 )
