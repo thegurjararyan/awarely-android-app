@@ -15,7 +15,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Awarely"
         android:theme="@style/Theme.Awarely"
-        android:name=".AwarelyApp"
+
         tools:ignore="MissingClass">
 
         <!-- BootReceiver for autostart -->

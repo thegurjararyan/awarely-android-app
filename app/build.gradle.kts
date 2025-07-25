@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.awarely"
+    namespace = "com.example.awarely"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.awarely"
+        applicationId = "com.example.awarely"
         minSdk = 30
         targetSdk = 34
         versionCode = 1

@@ -1,13 +1,11 @@
 package com.example.awarely.viewmodel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.awarely.data.databases.AppDatabase
 import com.example.awarely.model.UsageData
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -20,22 +18,27 @@ class UsageViewModel(application: Application) : AndroidViewModel(application) {
         val calendar = Calendar.getInstance()
         val endTime = calendar.timeInMillis
 
-        // Calculate start time based on days
         calendar.add(Calendar.DAY_OF_YEAR, -days)
         val startTime = calendar.timeInMillis
 
-        // Get sessions within the time range
+        Log.d("Awarely", "Fetching usage sessions from $startTime to $endTime")
+
         val sessions = sessionDao.getSessionsInTimeRange(startTime, endTime)
 
-        // Group by package name and calculate total usage
+        if (sessions.isEmpty()) {
+            Log.d("Awarely", "No sessions found for the selected range.")
+            return emptyList()
+        }
+
+        // Group by package name and calculate total duration
         val usageMap = sessions.groupBy { it.packageName }
             .mapValues { (_, sessions) ->
                 sessions.sumOf { it.duration }
             }
 
-        // Convert to UsageData list and sort by usage time
         return usageMap.map { (packageName, totalDuration) ->
-            val appName = sessions.find { it.packageName == packageName }?.appName ?: packageName
+            // Get first session to extract app name safely
+            val appName = sessions.firstOrNull { it.packageName == packageName }?.appName ?: packageName
             UsageData(
                 appName = appName,
                 packageName = packageName,

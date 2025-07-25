@@ -3,12 +3,13 @@ package com.example.awarely.overlay
 
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
-import com.awarely.R
+import com.example.awarely.R
 
 class FloatingTimerView(private val context: Context) {
 
@@ -34,7 +35,7 @@ class FloatingTimerView(private val context: Context) {
         layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
                 WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             else
                 WindowManager.LayoutParams.TYPE_PHONE,

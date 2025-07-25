@@ -1,89 +1,76 @@
-package com.example.awarely.ui.screens
+package com.example.awarely.ui
 
-import androidx.compose.foundation.background
+import android.app.Application
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.awarely.model.UsageData
-import com.example.awarely.ui.components.UsageBarChart
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.awarely.viewmodel.UsageViewModel
-import kotlinx.coroutines.launch
+import com.example.awarely.model.UsageData
+import androidx.lifecycle.ViewModelProvider
+import com.example.awarely.viewmodel.UsageViewModelFactory
 
 @Composable
-fun UsageScreen(
-    viewModel: UsageViewModel,
-    modifier: Modifier = Modifier
-) {  // Updated to accept modifier parameter
-    val scope = rememberCoroutineScope()
-    var selectedRange by remember { mutableStateOf(1) } // 1 = Today
-    val usageData by produceState<List<UsageData>>(initialValue = emptyList(), selectedRange) {
-        scope.launch {
-            value = viewModel.getUsageDataForDays(selectedRange)
-        }
+fun UsageScreen(app: Application) {
+    val viewModel: UsageViewModel = viewModel(factory = UsageViewModelFactory(app))
+    var usageData by remember { mutableStateOf<List<UsageData>>(emptyList()) }
+    var selectedDays by remember { mutableStateOf(1) }
+
+    LaunchedEffect(selectedDays) {
+        usageData = viewModel.getUsageDataForDays(selectedDays)
     }
 
-    val rangeOptions = listOf("Today", "7 Days", "30 Days")
-    val rangeValues = listOf(1, 7, 30)
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
 
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .background(MaterialTheme.colorScheme.background),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column {
-            Text(
-                text = "App Usage",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                rangeOptions.forEachIndexed { index, label ->
-                    val isSelected = selectedRange == rangeValues[index]
-                    OutlinedButton(
-                        onClick = { selectedRange = rangeValues[index] },
-                        shape = RoundedCornerShape(20.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = if (isSelected)
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                            else Color.Transparent
-                        )
-                    ) {
-                        Text(text = label)
-                    }
-                }
-            }
-
-            UsageBarChart(
-                data = usageData,  // Changed from usageData to data
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-            )
+        // Days selector
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Button(onClick = { selectedDays = 1 }) { Text("Today") }
+            Button(onClick = { selectedDays = 7 }) { Text("Last 7 Days") }
+            Button(onClick = { selectedDays = 30 }) { Text("Last 30 Days") }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (usageData.isEmpty()) {
+            Text("No usage data available", style = MaterialTheme.typography.bodyMedium)
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f)) {
+                items(usageData) { item ->
+                    UsageItem(item)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "Built with ❤️ by Aryan Chaudhary",
-            fontSize = 14.sp,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(top = 12.dp, bottom = 4.dp),
-            color = Color.Gray
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
         )
+    }
+}
+
+@Composable
+fun UsageItem(data: UsageData) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Text(text = data.appName, style = MaterialTheme.typography.titleMedium)
+            Text(text = data.usageTimeFormatted, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
